@@ -1,0 +1,251 @@
+1) PostgresSql DB
+brew install postgres
+postgres -D /usr/local/var/postgres/ >/Users/rqiao2/tmp/logs/postgres.log 2>&1 &
+pg_ctl -D /usr/local/var/postgres stop -s -m fast
+
+psql postgres
+create database stock_data;
+psql stock_data
+
+CREATE TABLE tickers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(10) NOT NULL
+);
+
+create table tickers_data
+(
+  ticker   integer not null,
+  time     integer not null,
+  open     double precision not null,
+  high     double precision not null,
+  low      double precision not null,
+  close    double precision not null,
+  adjclose double precision not null,
+  volume   double precision,
+  primary key (ticker, time),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+create table cluster_1month(
+  ticker   integer not null,
+  distr_index integer not null,
+  distr_range_start double precision not null,
+  distr_range_end double precision not null,
+  distr_count integer not null,
+  primary key (ticker, distr_index),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+create table cluster_3month(
+  ticker   integer not null,
+  distr_index integer not null,
+  distr_range_start double precision not null,
+  distr_range_end double precision not null,
+  distr_count integer not null,
+  primary key (ticker, distr_index),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+create table cluster_6month(
+  ticker   integer not null,
+  distr_index integer not null,
+  distr_range_start double precision not null,
+  distr_range_end double precision not null,
+  distr_count integer not null,
+  primary key (ticker, distr_index),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+create table cluster_1year(
+  ticker   integer not null,
+  distr_index integer not null,
+  distr_range_start double precision not null,
+  distr_range_end double precision not null,
+  distr_count integer not null,
+  primary key (ticker, distr_index),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+create table cluster_2year(
+  ticker   integer not null,
+  distr_index integer not null,
+  distr_range_start double precision not null,
+  distr_range_end double precision not null,
+  distr_count integer not null,
+  primary key (ticker, distr_index),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+create table cluster_3year(
+  ticker   integer not null,
+  distr_index integer not null,
+  distr_range_start double precision not null,
+  distr_range_end double precision not null,
+  distr_count integer not null,
+  primary key (ticker, distr_index),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+create table cluster_5year(
+  ticker   integer not null,
+  distr_index integer not null,
+  distr_range_start double precision not null,
+  distr_range_end double precision not null,
+  distr_count integer not null,
+  primary key (ticker, distr_index),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+drop table cluster_3month;
+drop table cluster_6month;
+drop table cluster_1year;
+drop table cluster_2year;
+drop table cluster_3year;
+drop table cluster_5year;
+select b.name, a.* from cluster_2year a, tickers b where a.ticker = b.id and b.name = 'AAPL';
+select b.name, a.* from tickers_data a, tickers b where a.ticker = b.id and b.name = 'AAPL';
+
+create table latest_price(
+  ticker   integer not null,
+  ts integer not null,
+  price double precision not null,
+  primary key (ticker, ts),
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+create table trend(
+  ticker   integer not null primary key,
+  day1 double precision,
+  day7 double precision,
+  day14 double precision,
+  day30 double precision,
+  month3 double precision,
+  month6 double precision,
+  year1 double precision,
+  year2 double precision,
+  year3 double precision,
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+create table volume_std(
+  ticker   integer not null primary key,
+  day7 double precision,
+  day14 double precision,
+  day30 double precision,
+  month3 double precision,
+  month6 double precision,
+  year1 double precision,
+  year2 double precision,
+  year3 double precision,
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+create table volume_median(
+  ticker   integer not null primary key,
+  day7 double precision,
+  day14 double precision,
+  day30 double precision,
+  month3 double precision,
+  month6 double precision,
+  year1 double precision,
+  year2 double precision,
+  year3 double precision,
+  FOREIGN KEY (ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+create table trend_market(
+  ts integer not null primary key,
+  day1 double precision,
+  day7 double precision,
+  day14 double precision,
+  day30 double precision,
+  month3 double precision,
+  month6 double precision,
+  year1 double precision,
+  year2 double precision,
+  year3 double precision,
+);
+
+# 0 success, 1 in progress, 2 error
+create table task_status
+(
+  id integer PRIMARY KEY not null,
+  name varchar(10) not null
+);
+insert into task_status(id, name) values(0, 'success');
+insert into task_status(id, name) values(1, 'wip');
+insert into task_status(id, name) values(2, 'error');
+
+create table tasks
+(
+  id SERIAL PRIMARY KEY,
+  time integer not null,
+  status integer not null,
+  last_ticker integer,
+  FOREIGN KEY (last_ticker)
+      REFERENCES tickers (id)
+      ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (status)
+    REFERENCES task_status (id)
+    ON UPDATE CASCADE ON DELETE CASCADE
+
+);
+insert into tasks(time, status, last_ticker) values(1611788400, 1, null);
+
+create table time_table
+(
+  unixts integer PRIMARY KEY,
+  year integer not null,
+  month integer not null,
+  date integer not null,
+  hour integer not null,
+  minute integer not null,
+  second integer not null
+);
+https://www.epochconverter.com/
+gmt time zone
+insert into time_table values(1611874800, 2021, 1, 28, 23, 0, 0);
+insert into time_table values(1611788400, 2021, 1, 27, 23, 0, 0);
+insert into time_table values(1611702000, 2021, 1, 26, 23, 0, 0);
+insert into time_table values(1611615600, 2021, 1, 25, 23, 0, 0);
+
+drop table tickers_data;
+drop table tickers;
+
+sql = "INSERT INTO tickers(name) VALUES(%s)"
+select id from tickers where name = 'BNGO';
+delete from tickers;
+
+
+
+
+2) Python
+
+no_proxy pip3 install psycopg2
+
+start: 1420153200 -- 2015-01-01
+end: 1611874800   -- 2021-01-28
+https://query1.finance.yahoo.com/v7/finance/download/RIV?period1=1580256000&period2=1611878400&interval=1d&events=history&includeAdjustedClose=true
+
+https://query1.finance.yahoo.com/v7/finance/download/NVAX?period1=1580256000&period2=1611792000&interval=1d&events=history&includeAdjustedClose=true
+https://query1.finance.yahoo.com/v8/finance/chart/ANTE?period1=1611849600&period2=1611849600&interval=1d&events=history&includeAdjustedClose=true
+
+https://query1.finance.yahoo.com/v7/finance/download/AMD?period1=1497317134&period2=1499909134&interval=1d&events=history&crumb=HwDtuBHqtg0
+https://query1.finance.yahoo.com/v8/finance/chart/AAPL?symbol=AAPL&period1=1611849600&period2=1611849600&interval=1m
+https://query1.finance.yahoo.com/v7/finance/download/A?period1=1611878400&period2=1611907200&interval=1d&events=history&includeAdjustedClose=true
